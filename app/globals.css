@@ -1,26 +1,143 @@
 @import "tailwindcss";
 
+/* Class-based dark mode so the toggle works (overrides the system default). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ *
+ * Design tokens. Semantic names map to a German-flag palette
+ * (black / red / gold). Values live on :root / .dark so utilities
+ * defined via `@theme inline` flip automatically with the theme.
+ * ------------------------------------------------------------------ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f6f3;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --card-hover: #faf9f5;
+  --foreground: #1b1b1f;
+  --muted: #54545f; /* AA on light surfaces */
+  --subtle: #6b6b76; /* large text only */
+  --border: #e7e4dd;
+  --border-strong: #d6d3ca;
+
+  --primary: #e0a800; /* flag gold */
+  --primary-hover: #c79209;
+  --primary-foreground: #1a1500;
+
+  --accent-red: #c81e1e;
+  --accent-ink: #1b1b1f;
+
+  --success: #15803d;
+  --success-soft: #f0fdf4;
+  --success-border: #b7e4c2;
+
+  --danger: #c4241c;
+  --danger-soft: #fef2f2;
+  --danger-border: #f3c2c0;
+
+  --info-soft: #fffaeb;
+  --info-border: #f4d36b;
+  --info-foreground: #7a4f0a;
+
+  --ring: #e0a800;
+}
+
+.dark {
+  --background: #0b0b0d;
+  --surface: #141418;
+  --card: #16161b;
+  --card-hover: #1d1d23;
+  --foreground: #f2f2f3;
+  --muted: #a9a9b4;
+  --subtle: #8b8b97;
+  --border: #2a2a31;
+  --border-strong: #3b3b45;
+
+  --primary: #ecb800;
+  --primary-hover: #f5c41a;
+  --primary-foreground: #1a1500;
+
+  --accent-red: #f4736b;
+  --accent-ink: #f2f2f3;
+
+  --success: #57d98a;
+  --success-soft: #102619;
+  --success-border: #1f5135;
+
+  --danger: #f4736b;
+  --danger-soft: #2a1311;
+  --danger-border: #5c2522;
+
+  --info-soft: #251f0e;
+  --info-border: #5f4d18;
+  --info-foreground: #f3d588;
+
+  --ring: #ecb800;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-accent-red: var(--accent-red);
+  --color-accent-ink: var(--accent-ink);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-border: var(--success-border);
+
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-border: var(--danger-border);
+
+  --color-info-soft: var(--info-soft);
+  --color-info-border: var(--info-border);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-ring: var(--ring);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", Roboto, sans-serif;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* One consistent, highly visible keyboard-focus indicator everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Respect users who ask for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 35%, transparent);
+  }
 }

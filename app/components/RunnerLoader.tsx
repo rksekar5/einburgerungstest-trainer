@@ -21,7 +21,7 @@ export default function RunnerLoader({ mode }: { mode: Mode }) {
 
   if (mode === 'review' && questions.length === 0) {
     return (
-      <p className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+      <p className="rounded-xl border border-border bg-card p-4 text-sm text-muted">
         Nichts zu wiederholen. Übe zuerst ein paar Fragen. / Nothing due — practice some questions
         first.
       </p>
