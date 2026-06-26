@@ -11,6 +11,19 @@ import { getQuestionById } from '@/lib/questions';
 const TUTOR_MODEL = process.env.TUTOR_MODEL ?? 'openai/gpt-4o-mini';
 const PROMPT_VERSION = 'explain-v1';
 
+// Fact-only, bilingual summary used when the AI tutor is not reachable.
+// States only what we already know (the correct option, the learner's choice) —
+// never fabricates exam facts, and never apologises in the UI.
+function factSummary(correctOption: string, userOption: string, wasCorrect: boolean): string {
+  const de = wasCorrect
+    ? `Richtig — „${correctOption}“ ist die korrekte Antwort.`
+    : `Die richtige Antwort ist „${correctOption}“. Ihre Wahl war „${userOption}“.`;
+  const en = wasCorrect
+    ? `Correct — “${correctOption}” is the right answer.`
+    : `The correct answer is “${correctOption}”. You chose “${userOption}”.`;
+  return `${de}\n\n${en}`;
+}
+
 interface ExplainRequest {
   questionId?: string;
   selectedIndex?: number;
@@ -41,16 +54,10 @@ export async function POST(req: Request) {
   const userOption = question.options[selectedIndex];
   const wasCorrect = selectedIndex === question.correctIndex;
 
-  // No gateway configured → honest, fact-only fallback (no fabricated content).
+  // No gateway configured → honest, fact-only summary (no fabricated content).
   if (!process.env.AI_GATEWAY_API_KEY) {
-    const de = `Die richtige Antwort ist: „${correctOption}“. ${
-      wasCorrect ? 'Richtig beantwortet.' : `Ihre Antwort war: „${userOption}“.`
-    }`;
-    const en = `The correct answer is: “${correctOption}”. ${
-      wasCorrect ? 'You answered correctly.' : `Your answer was: “${userOption}”.`
-    } (AI tutor not configured — set AI_GATEWAY_API_KEY for detailed explanations.)`;
     return NextResponse.json({
-      explanation: `${de}\n\n${en}`,
+      explanation: factSummary(correctOption, userOption, wasCorrect),
       source: 'fallback',
       promptVersion: PROMPT_VERSION,
     });
@@ -85,12 +92,10 @@ export async function POST(req: Request) {
       promptVersion: PROMPT_VERSION,
     });
   } catch (err) {
-    // Never fail the UX on an AI error — fall back to the fact-only explanation.
-    const de = `Die richtige Antwort ist: „${correctOption}“.`;
-    const en = `The correct answer is: “${correctOption}”. (AI tutor temporarily unavailable.)`;
+    // Never fail the UX on an AI error — fall back to the fact-only summary.
     console.error('explain route AI error:', err);
     return NextResponse.json({
-      explanation: `${de}\n\n${en}`,
+      explanation: factSummary(correctOption, userOption, wasCorrect),
       source: 'fallback',
       promptVersion: PROMPT_VERSION,
     });

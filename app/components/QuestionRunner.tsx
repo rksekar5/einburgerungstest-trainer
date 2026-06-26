@@ -300,7 +300,7 @@ export default function QuestionRunner({
                 <p className="mt-3 text-xs text-subtle">
                   {explain.source === 'ai'
                     ? `via ${explain.model ?? 'KI / AI'}`
-                    : 'Fallback (kein KI-Schlüssel / no AI key)'}
+                    : 'Faktenbasierte Kurzantwort / Fact-based summary'}
                 </p>
               )}
             </div>
