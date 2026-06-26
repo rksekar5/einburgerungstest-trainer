@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Einbürgerungstest Trainer
 
-## Getting Started
+An adaptive, bilingual (DE + EN) trainer for the German citizenship test, built to
+exercise the Vercel platform. Features a Leitner-based adaptive review queue and a
+fact-bounded **AI tutor** (via Vercel AI Gateway).
 
-First, run the development server:
+> ⚠️ **Sample data only.** This repo ships a handful of clearly-marked sample
+> questions so the app runs end-to-end. The full, verified official BAMF catalogue
+> (300 general + 16×10 state questions) must be imported before using this for real
+> exam prep. Never fabricate official questions or answers.
+
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app runs fully offline. The AI tutor returns a deterministic fact-only fallback
+until an AI Gateway key is configured (see below).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Üben / Practice** — immediate feedback + "Explain" tutor on every question.
+- **Prüfung / Mock exam** — official format (30 general + 3 state, pass 17/33, 60 min);
+  with sample data it scales the count, time, and pass mark proportionally.
+- **Wiederholen / Review** — adaptive Leitner queue, weakest questions first.
+- **Bundesland selector** — explicit choice (geo is only ever a hint, never authority).
+- **Anonymous device sessions** — progress stored per-device, with a one-click reset.
 
-## Learn More
+## Architecture / swap seams
 
-To learn more about Next.js, take a look at the following resources:
+Everything runs locally now, with single-point seams to swap in Vercel services:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Concern | Local today | Swap to (Vercel) |
+| --- | --- | --- |
+| Question data | `lib/questions.ts` (`getAllQuestions`) | Vercel Postgres (+ pgvector) |
+| Device progress / SRS | `lib/store.ts` (localStorage) | Vercel KV + Postgres |
+| AI tutor | `app/api/explain/route.ts` (fallback) | Vercel AI Gateway |
+| Question images | none | Vercel Blob |
+| Bundesland geo hint | explicit selector | Edge Middleware |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Connect Vercel (Hobby)
 
-## Deploy on Vercel
+1. Create a free Hobby account at vercel.com (sign in with GitHub).
+2. `npx vercel link` in this folder.
+3. Add an **AI Gateway** key, then set `AI_GATEWAY_API_KEY` (locally in `.env.local`,
+   and in Project → Settings → Environment Variables). Copy `.env.example` to start.
+4. Provision Postgres / KV / Blob from the dashboard when wiring those phases.
+5. `npx vercel` to deploy a preview, `npx vercel --prod` for production.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Roadmap (next phases)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Import & verify the official BAMF catalogue into Postgres (+ embeddings).
+- Move SRS/attempts to KV/Postgres; cache + human-verify AI explanations.
+- Conversational AI examiner (`useChat` + tool calling).
+- Cron (question of the day), Edge Config flags, Web Analytics + Speed Insights.
